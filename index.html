@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Agriculture App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f9f4; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h2 { color: #2e7d32; }
+    input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { background: #2e7d32; color: white; font-weight: bold; cursor: pointer; }
+    button:hover { background: #1b5e20; }
+    .hidden { display: none; }
+    img { width: 100%; max-height: 200px; object-fit: cover; margin: 10px 0; border-radius: 8px; }
+    .expense-box { background: #e8f5e9; padding: 10px; border-radius: 8px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- LOGIN -->
+    <div id="loginPage">
+      <h2>Farmer Login</h2>
+      <input type="text" id="loginUsername" placeholder="Username">
+      <input type="password" id="loginPassword" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <p>Don't have an account? <a href="#" onclick="showSignup()">Sign Up</a></p>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signupPage" class="hidden">
+      <h2>Create Account</h2>
+      <input type="text" id="signupName" placeholder="Full Name">
+      <input type="text" id="signupUsername" placeholder="Username">
+      <input type="password" id="signupPassword" placeholder="Password">
+      <input type="text" id="signupPhone" placeholder="Phone Number">
+      <button onclick="signup()">Sign Up</button>
+      <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+    </div>
+
+    <!-- FARM DETAILS -->
+    <div id="farmPage" class="hidden">
+      <h2>Farm Details</h2>
+      <input type="number" id="fieldSize" placeholder="Field Size (in acres)">
+      <select id="season">
+        <option value="">Select Season</option>
+        <option value="summer">Summer</option>
+        <option value="monsoon">Monsoon</option>
+        <option value="winter">Winter</option>
+      </select>
+      <button onclick="saveFarmDetails()">Continue</button>
+    </div>
+
+    <!-- TASK SELECTION -->
+    <div id="taskPage" class="hidden">
+      <h2>Select Task</h2>
+      <select id="taskSelect" onchange="showTaskImage()">
+        <option value="">-- Choose Task --</option>
+        <option value="seeding">🌱 Seeding</option>
+        <option value="watering">💧 Watering</option>
+        <option value="harvesting">🌾 Harvesting</option>
+      </select>
+      <img id="taskImage" class="hidden" src="" alt="Task Image">
+      <button onclick="calculateTask()">Get Recommendations</button>
+      <div id="taskOutput" class="expense-box"></div>
+      <button onclick="showExpenses()">View Expenses</button>
+    </div>
+
+    <!-- EXPENSES -->
+    <div id="expensePage" class="hidden">
+      <h2>Expense Summary</h2>
+      <div id="expenseList" class="expense-box"></div>
+      <button onclick="showTasks()">Back to Tasks</button>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div id="notifyPage" class="hidden">
+      <h2>Reminders</h2>
+      <ul>
+        <li>💧 Irrigate the field every 3 days</li>
+        <li>🌱 Apply fertilizer on schedule</li>
+        <li>🌾 Reminder: Harvest dates coming soon</li>
+        <li>💰 Payment due reminders</li>
+      </ul>
+      <button onclick="showTasks()">Back</button>
+    </div>
+
+  </div>
+
+  <script>
+    let user = {};
+    let farm = {};
+    let expenses = [];
+
+    function showSignup() {
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("signupPage").classList.remove("hidden");
+    }
+    function showLogin() {
+      document.getElementById("signupPage").classList.add("hidden");
+      document.getElementById("loginPage").classList.remove("hidden");
+    }
+    function signup() {
+      user = {
+        name: document.getElementById("signupName").value,
+        username: document.getElementById("signupUsername").value,
+        password: document.getElementById("signupPassword").value,
+        phone: document.getElementById("signupPhone").value
+      };
+      alert("Signup successful! Please login.");
+      showLogin();
+    }
+    function login() {
+      let uname = document.getElementById("loginUsername").value;
+      let pass = document.getElementById("loginPassword").value;
+      if (uname === user.username && pass === user.password) {
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("farmPage").classList.remove("hidden");
+      } else {
+        alert("Invalid credentials!");
+      }
+    }
+    function saveFarmDetails() {
+      farm.size = parseFloat(document.getElementById("fieldSize").value);
+      farm.season = document.getElementById("season").value;
+      if (!farm.size || !farm.season) {
+        alert("Please enter all details!");
+        return;
+      }
+      document.getElementById("farmPage").classList.add("hidden");
+      document.getElementById("taskPage").classList.remove("hidden");
+    }
+    function showTaskImage() {
+      let task = document.getElementById("taskSelect").value;
+      let img = document.getElementById("taskImage");
+      if (task === "seeding") img.src = "https://i.imgur.com/2nCt3Sbl.jpg";
+      else if (task === "watering") img.src = "https://i.imgur.com/1HV9pZcl.jpg";
+      else if (task === "harvesting") img.src = "https://i.imgur.com/YvWyoYsl.jpg";
+      if (task) img.classList.remove("hidden");
+      else img.classList.add("hidden");
+    }
+    function calculateTask() {
+      let task = document.getElementById("taskSelect").value;
+      let output = document.getElementById("taskOutput");
+      let cost = 0;
+      if (task === "seeding") {
+        let seedCost = farm.size * 1000;
+        let fertCost = farm.size * 500;
+        let labor = farm.size * 1500;
+        cost = seedCost + fertCost + labor;
+        output.innerHTML = `Seeds: ₹${seedCost}<br>Fertilizer: ₹${fertCost}<br>Labor: ₹${labor}<br><b>Total: ₹${cost}</b>`;
+      }
+      else if (task === "watering") {
+        let water = farm.size * 800;
+        cost = water;
+        output.innerHTML = `Water Pump & Irrigation Cost: ₹${water}`;
+      }
+      else if (task === "harvesting") {
+        let machine = farm.size * 2000;
+        cost = machine;
+        output.innerHTML = `Threshing Machine: ₹${machine}`;
+      }
+      if (cost > 0) expenses.push({ task, cost });
+    }
+    function showExpenses() {
+      document.getElementById("taskPage").classList.add("hidden");
+      document.getElementById("expensePage").classList.remove("hidden");
+      let list = expenses.map(e => `${e.task}: ₹${e.cost}`).join("<br>");
+      let total = expenses.reduce((sum, e) => sum + e.cost, 0);
+      document.getElementById("expenseList").innerHTML = list + `<br><b>Total: ₹${total}</b>`;
+    }
+    function showTasks() {
+      document.getElementById("expensePage").classList.add("hidden");
+      document.getElementById("notifyPage").classList.add("hidden");
+      document.getElementById("taskPage").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
